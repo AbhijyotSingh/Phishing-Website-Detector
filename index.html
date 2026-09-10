@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Scanner</title>
+<link rel="stylesheet" href="css.css">
+</head>
+<body>
+    <main>
+        <h1>Is this link safe?</h1>
+        <p class="lede">Paste a URL below. A logistic regression model, trained on the raw structure of thousands of phishing and legitimate URLs, will scan it and tell you what it finds.</p>
+
+        <form id="scanForm">
+            <label for="link">URL to check</label>
+            <input type="text" id="link" name="link" placeholder="https://example.com/login" autocomplete="off" required>
+            <button type="submit">Scan link</button>
+        </form>
+
+        <div id="scanCard" class="scan-card" hidden>
+            <div id="scanLine" class="scan-line"></div>
+            <p class="scan-url" id="scannedUrl"></p>
+            <p class="verdict" id="verdict"></p>
+        </div>
+
+        <p class="note">This is a machine learning estimate based on URL patterns alone — it does not fetch or inspect the destination page. Use it as one signal, not a guarantee.</p>
+    </main>
+
+<script>
+    const BACKEND_URL = "https://your-backend-url.onrender.com";
+
+    const form = document.getElementById("scanForm");
+    const scanCard = document.getElementById("scanCard");
+    const scannedUrl = document.getElementById("scannedUrl");
+    const verdict = document.getElementById("verdict");
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const link = document.getElementById("link").value.trim();
+        if (!link) return;
+
+        scanCard.hidden = false;
+        scanCard.className = "scan-card scanning";
+        scannedUrl.textContent = link;
+        verdict.textContent = "Scanning\u2026 this may take up to a minute if the server was idle.";
+
+        fetch(BACKEND_URL + "/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ link: link })
+        })
+            .then(response => response.json())
+            .then(data => {
+                const isPhishing = data.Predicted_outcome === 1 || data.Predicted_outcome === 1.0;
+                scanCard.className = "scan-card " + (isPhishing ? "danger" : "safe");
+                verdict.textContent = isPhishing
+                    ? "This looks like a phishing URL. Avoid entering any information."
+                    : "This URL looks legitimate.";
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                scanCard.className = "scan-card danger";
+                verdict.textContent = "Couldn't reach the scanner. Try again in a moment.";
+            });
+    });
+</script>
+</body>
+</html>
