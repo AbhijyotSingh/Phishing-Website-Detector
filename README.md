@@ -1,0 +1,1 @@
+This project helps to determine whether a website looks legitimate or not. It used Natural Language Processing with Logistic Regression.
