@@ -23,12 +23,28 @@
             <p class="verdict" id="verdict"></p>
         </div>
 
-        <p class="note">This is a machine learning estimate based on URL patterns alone — it does not fetch or inspect the destination page. Use it as one signal, not a guarantee.</p>
+        <p class="note">This is a machine learning estimate based on URL patterns alone. It does not fetch or inspect the destination page. Use it as one signal, not a guarantee.</p>
     </main>
 
 <script>
-    const BACKEND_URL = "https://your-backend-url.onrender.com";
+    const BACKEND_URL = "https://phishing-website-detector-dbxv.onrender.com";
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+    Notification.requestPermission();
+    }
 
+    window.addEventListener("load", () => {
+        fetch(BACKEND_URL)
+            .then(() => {
+                console.log("Backend warmed up");
+                if (Notification.permission === "granted") {
+                    new Notification("Link Scanner is ready!", {
+                        body: "The backend has finished waking up — you can scan now."
+                    });
+                }
+            })
+            .catch(error => console.log("Backend warm-up:", error));
+    });
+    
     const form = document.getElementById("scanForm");
     const scanCard = document.getElementById("scanCard");
     const scannedUrl = document.getElementById("scannedUrl");
